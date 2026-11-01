@@ -85,7 +85,7 @@ public abstract class TNumberFormat extends TFormat {
         if (object instanceof Number) {
             double dv = ((Number) object).doubleValue();
             long lv = ((Number) object).longValue();
-            if (dv == lv) {
+            if (dv == lv && (dv != 0 || Double.doubleToRawLongBits(dv) >= 0)) {
                 return format(lv, buffer, field);
             }
             return format(dv, buffer, field);

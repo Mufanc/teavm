@@ -42,6 +42,8 @@ public class DecimalFormatTest {
         assertEquals("0", format.format(0.001));
         assertEquals("0.33", format.format(0.33));
         assertEquals("-0", format.format(-0.001));
+        assertEquals("-0", format.format(-0.0));
+        assertEquals("-0", format.format((Object) (-0.0)));
         assertEquals("0", format.format(new BigDecimal("0.001")));
         assertEquals("0.33", format.format(new BigDecimal("0.33")));
     }

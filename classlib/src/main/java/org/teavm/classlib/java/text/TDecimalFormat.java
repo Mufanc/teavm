@@ -564,10 +564,11 @@ public class TDecimalFormat extends TNumberFormat {
         } else {
             DoubleAnalyzer.Result analysisResult = Constants.doubleAnalysisResult;
             DoubleAnalyzer.analyze(value, analysisResult);
+            boolean positive = Double.doubleToRawLongBits(value) >= 0;
             if (exponentDigits > 0) {
-                formatExponent(analysisResult.mantissa, analysisResult.exponent, !analysisResult.sign, buffer);
+                formatExponent(analysisResult.mantissa, analysisResult.exponent, positive, buffer);
             } else {
-                formatRegular(analysisResult.mantissa, analysisResult.exponent, !analysisResult.sign, buffer);
+                formatRegular(analysisResult.mantissa, analysisResult.exponent, positive, buffer);
             }
         }
         return buffer;
