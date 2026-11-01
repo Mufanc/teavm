@@ -208,6 +208,41 @@ public class RandomTest {
     }
 
     @Test
+    public void boundedIntegersWithSeed() {
+        var random = new Random(1);
+        var bounds = new int[] { 100, 512, 1073741825, 100, 512, 1073741825 };
+        var expected = new int[] { 85, 51, 880641847, 13, 106, 77814904 };
+        for (int i = 0; i < bounds.length; ++i) {
+            assertEquals(expected[i], random.nextInt(bounds[i]));
+        }
+    }
+
+    @Test
+    public void booleansWithSeed() {
+        var random = new Random(1);
+        var expected = new boolean[] { true, false, false, false, false, false, false, true, true, true };
+        for (boolean value : expected) {
+            assertEquals(value, random.nextBoolean());
+        }
+    }
+
+    @Test
+    public void bytesWithSeed() {
+        var random = new Random(1);
+        var bytes = new byte[11];
+        random.nextBytes(bytes);
+        assertArrayEquals(new byte[] { 115, -43, 26, -69, -40, -100, -72, 25, 111, 14, -5 }, bytes);
+    }
+
+    @Test
+    public void reseedingDiscardsCachedGaussian() {
+        var random = new Random(1);
+        var first = random.nextGaussian();
+        random.setSeed(1);
+        assertEquals(first, random.nextGaussian(), 0.0);
+    }
+
+    @Test
     public void doublesWithSeed() {
         var rand = new Random(1);
         assertEquals(0.7308781907032909, rand.nextDouble(), 1e-5);

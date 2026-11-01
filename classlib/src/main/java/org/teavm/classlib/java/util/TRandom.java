@@ -40,11 +40,46 @@ public class TRandom extends TObject implements TRandomGenerator, TSerializable 
 
     public void setSeed(@SuppressWarnings("unused") long seed) {
         this.seed = (seed ^ 0x5DEECE66DL) & ((1L << 48) - 1);
+        haveStoredGaussian = false;
     }
 
     @Override
     public int nextInt() {
         return next(32);
+    }
+
+    @Override
+    public int nextInt(int bound) {
+        RandomUtils.checkBound(bound);
+        int value = next(31);
+        int mask = bound - 1;
+
+        if ((bound & mask) == 0) {
+            return (int) ((bound * (long) value) >> 31);
+        }
+
+        int result = value % bound;
+
+        while (value - result + mask < 0) {
+            value = next(31);
+            result = value % bound;
+        }
+
+        return result;
+    }
+
+    @Override
+    public boolean nextBoolean() {
+        return next(1) != 0;
+    }
+
+    @Override
+    public void nextBytes(byte[] bytes) {
+        for (int i = 0; i < bytes.length;) {
+            for (int value = nextInt(), count = Math.min(bytes.length - i, 4); count-- > 0; value >>= 8) {
+                bytes[i++] = (byte) value;
+            }
+        }
     }
 
     protected int next(int bits) {
