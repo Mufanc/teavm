@@ -121,7 +121,7 @@ public class ObjectTest {
                 lock.notifyAll();
             }
         }
-        assertTrue(woken, "notify() after a timed-out wait() did not wake the waiting thread");
+        assertTrue("notify() after a timed-out wait() did not wake the waiting thread", woken);
     }
 
     @Test
@@ -165,9 +165,9 @@ public class ObjectTest {
                 lock.notifyAll();
             }
         }
-        assertTrue(heldLockAfterInterrupt[0], "wait() did not hold the monitor when it threw InterruptedException");
-        assertTrue(flagClearedAfterInterrupt[0], "InterruptedException from wait() left the interrupt status set");
-        assertTrue(state[3], "notify() after an interrupted wait() did not wake the waiting thread");
+        assertTrue("wait() did not hold the monitor when it threw InterruptedException", heldLockAfterInterrupt[0]);
+        assertTrue("InterruptedException from wait() left the interrupt status set", flagClearedAfterInterrupt[0]);
+        assertTrue("notify() after an interrupted wait() did not wake the waiting thread", state[3]);
     }
 
     // The waiter holds the lock from setting a flag until it waits, so once the flag is set, it waits.
