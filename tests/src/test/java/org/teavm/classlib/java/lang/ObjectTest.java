@@ -74,6 +74,34 @@ public class ObjectTest {
     }
 
     @Test
+    public void allContendingThreadsEnterMonitor() throws InterruptedException {
+        Object lock = new Object();
+        int[] entered = { 0 };
+        Thread[] threads = new Thread[3];
+        synchronized (lock) {
+            for (int i = 0; i < threads.length; ++i) {
+                threads[i] = new Thread(() -> {
+                    try {
+                        Thread.sleep(0);
+                        synchronized (lock) {
+                            entered[0]++;
+                        }
+                    } catch (InterruptedException e) {
+                        throw new AssertionError(e);
+                    }
+                });
+                threads[i].setDaemon(true);
+                threads[i].start();
+            }
+            Thread.sleep(50);
+        }
+        for (Thread thread : threads) {
+            thread.join(200);
+        }
+        assertEquals(threads.length, entered[0]);
+    }
+
+    @Test
     public void waitWorks() throws InterruptedException {
         long start = System.currentTimeMillis();
         final Object lock = new Object();
