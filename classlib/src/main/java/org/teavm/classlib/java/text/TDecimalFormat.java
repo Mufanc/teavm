@@ -63,6 +63,12 @@ public class TDecimalFormat extends TNumberFormat {
         TDecimalFormatParser parser = new TDecimalFormatParser();
         parser.parse(pattern);
         parser.apply(this);
+
+        if (exponentDigits == 0 && getMinimumIntegerDigits() == 0 && getMinimumFractionDigits() == 0
+                && getMaximumFractionDigits() > 0) {
+            setMinimumIntegerDigits(1);
+        }
+
         this.pattern = pattern;
     }
 

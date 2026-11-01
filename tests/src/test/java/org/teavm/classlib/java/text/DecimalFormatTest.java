@@ -37,6 +37,16 @@ public class DecimalFormatTest {
     private static DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ENGLISH);
 
     @Test
+    public void optionalDigitsStillShowZero() {
+        var format = createFormat("#.##");
+        assertEquals("0", format.format(0.001));
+        assertEquals("0.33", format.format(0.33));
+        assertEquals("-0", format.format(-0.001));
+        assertEquals("0", format.format(new BigDecimal("0.001")));
+        assertEquals("0.33", format.format(new BigDecimal("0.33")));
+    }
+
+    @Test
     public void parsesIntegerPattern() {
         DecimalFormat format = createFormat("00");
         assertEquals(2, format.getMinimumIntegerDigits());
