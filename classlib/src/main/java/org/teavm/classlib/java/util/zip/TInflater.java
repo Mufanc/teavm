@@ -106,6 +106,14 @@ public class TInflater implements TAutoCloseable {
             throw new IllegalStateException();
         }
 
+        if (nbytes == 0 || finished || needsDictionary) {
+            return 0;
+        }
+
+        if (impl.next_in == null) {
+            impl.setInput(new byte[0]);
+        }
+
         long lastInSize = impl.total_in;
         long lastOutSize = impl.total_out;
         boolean neededDict = needsDictionary;
@@ -115,6 +123,7 @@ public class TInflater implements TAutoCloseable {
         int errCode = impl.inflate(0);
         switch (errCode) {
             case JZlib.Z_OK:
+            case JZlib.Z_BUF_ERROR:
                 break;
             case JZlib.Z_NEED_DICT:
                 needsDictionary = true;
