@@ -15,7 +15,10 @@
  */
 package org.teavm.classlib.java.util.zip;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 import static org.teavm.classlib.java.util.zip.ZipTestUtil.readHex;
 import java.io.ByteArrayInputStream;
@@ -23,7 +26,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.Inflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -79,6 +86,64 @@ public class DeflateStreamTest {
         var uncompressed = input.readAllBytes();
         assertEquals(longString, new String(uncompressed, StandardCharsets.UTF_8));
         assertNull(input.getNextEntry());
+    }
+
+    @Test
+    public void emptyDeflaterCanBeCalledRepeatedly() {
+        var deflater = new Deflater();
+        try {
+            var output = new byte[100];
+            deflater.deflate(output);
+            assertEquals(0, deflater.deflate(output));
+            assertEquals(0, deflater.deflate(new byte[0]));
+        } finally {
+            deflater.end();
+        }
+    }
+
+    @Test
+    public void inflaterWithoutInputReturnsZero() throws DataFormatException {
+        var inflater = new Inflater();
+        try {
+            assertEquals(0, inflater.inflate(new byte[100]));
+            assertEquals(0, inflater.inflate(new byte[0]));
+            inflater.reset();
+            assertEquals(0, inflater.inflate(new byte[100]));
+        } finally {
+            inflater.end();
+        }
+    }
+
+    @Test
+    public void gzipFlushRoundTripWithSmallReads() throws IOException {
+        var bytes = new ByteArrayOutputStream();
+        var data = longString.getBytes(StandardCharsets.UTF_8);
+        try (var output = new GZIPOutputStream(bytes, 16)) {
+            output.write(data, 0, 50);
+            output.flush();
+            output.flush();
+            output.write(data, 50, data.length - 50);
+        }
+        var result = new ByteArrayOutputStream();
+        try (var input = new GZIPInputStream(new ByteArrayInputStream(bytes.toByteArray()), 16)) {
+            var buffer = new byte[3];
+            for (int count; (count = input.read(buffer)) != -1;) {
+                result.write(buffer, 0, count);
+            }
+        }
+        assertArrayEquals(data, result.toByteArray());
+    }
+
+    @Test
+    public void invalidCompressedInputStillThrows() {
+        var inflater = new Inflater();
+        try {
+            inflater.setInput(new byte[] { 1, 2, 3, 4 });
+            assertThrows(DataFormatException.class, () -> inflater.inflate(new byte[100]));
+            assertTrue(!inflater.finished());
+        } finally {
+            inflater.end();
+        }
     }
 
     private static int readFully(InputStream input, byte[] target) throws IOException {

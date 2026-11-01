@@ -88,6 +88,7 @@ public class TDeflater implements TAutoCloseable {
         int err = impl.deflate(flushParam);
         switch (err) {
             case JZlib.Z_OK:
+            case JZlib.Z_BUF_ERROR:
                 break;
             case JZlib.Z_STREAM_END:
                 finished = true;
