@@ -23,6 +23,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -265,9 +266,9 @@ public final class TFormatter implements Closeable, Flushable {
             Object arg = args[argumentIndex];
             boolean negative;
             if (arg instanceof Double) {
-                negative = (Double) arg < 0;
+                negative = Double.doubleToRawLongBits((Double) arg) < 0;
             } else if (arg instanceof Float) {
-                negative = (Float) arg < 0;
+                negative = Float.floatToRawIntBits((Float) arg) < 0;
             } else if (arg instanceof BigDecimal) {
                 negative = ((BigDecimal) arg).signum() < 0;
             } else {
@@ -294,6 +295,19 @@ public final class TFormatter implements Closeable, Flushable {
                 format.setPositivePrefix("+"); // DecimalFormatSymbols has no plus sign
             } else if ((flags & TFormattableFlags.LEADING_SPACE) != 0) {
                 format.setPositivePrefix(" ");
+            }
+
+            if (arg instanceof Double || arg instanceof Float) {
+                double value = ((Number) arg).doubleValue();
+
+                if (Double.isFinite(value) && value != 0) {
+                    arg = BigDecimal.valueOf(value);
+                }
+            }
+
+            if (arg instanceof BigDecimal) {
+                var rounded = ((BigDecimal) arg).setScale(precision, RoundingMode.HALF_UP);
+                arg = rounded.signum() == 0 && negative ? -0.0 : rounded;
             }
 
             String str = format.format(arg);

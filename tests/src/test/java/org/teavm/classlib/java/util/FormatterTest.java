@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import java.math.BigDecimal;
 import java.util.DuplicateFormatFlagsException;
 import java.util.FormatFlagsConversionMismatchException;
 import java.util.Formattable;
@@ -36,6 +37,16 @@ import org.teavm.junit.TeaVMTestRunner;
 
 @RunWith(TeaVMTestRunner.class)
 public class FormatterTest {
+    @Test
+    public void fixedPointUsesDecimalHalfUpRounding() {
+        assertEquals("2.68", String.format(Locale.US, "%.2f", 2.675));
+        assertEquals("10.00", String.format(Locale.US, "%.2f", 9.995));
+        assertEquals("-2.68", String.format(Locale.US, "%.2f", -2.675));
+        assertEquals("-0.00", String.format(Locale.US, "%.2f", -0.001));
+        assertEquals("-0000.00", String.format(Locale.US, "%08.2f", -0.0));
+        assertEquals("1.01", String.format(Locale.US, "%.2f", new BigDecimal("1.005")));
+    }
+
     @Test(expected = UnknownFormatConversionException.class)
     public void unexpectedEndOfFormatString() {
         new Formatter().format("%1", "foo");
