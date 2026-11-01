@@ -92,7 +92,9 @@ public final class Fiber {
         if (objectValues == null) {
             objectValues = new Object[4];
         } else if (objectTop + 1 == objectValues.length) {
-            objectValues = Arrays.copyOf(objectValues, objectValues.length * 3 / 2);
+            var newValues = new Object[objectValues.length * 3 / 2];
+            System.arraycopy(objectValues, 0, newValues, 0, objectValues.length);
+            objectValues = newValues;
         }
         objectValues[objectTop++] = value;
     }

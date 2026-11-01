@@ -47,6 +47,23 @@ public class AsyncTest {
         assertEquals(23, getPrimitive());
     }
 
+    @Test
+    public void objectStackGrowthAcrossSuspension() {
+        assertEquals(64, retainObjectsAcrossSuspension(new Object(), 64));
+    }
+
+    private int retainObjectsAcrossSuspension(Object value, int depth) {
+        if (depth == 0) {
+            getPrimitive();
+            return 0;
+        }
+        var child = new Object();
+        var result = retainObjectsAcrossSuspension(child, depth - 1);
+        assertEquals(Object.class, value.getClass());
+        assertEquals(Object.class, child.getClass());
+        return result + 1;
+    }
+
     @Async
     private native int getPrimitive();
 
