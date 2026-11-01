@@ -518,6 +518,18 @@ public class StatementRenderer implements ExprVisitor, StatementVisitor {
         if (expr.getLocation() != null) {
             pushLocation(expr.getLocation());
         }
+        boolean roundFloat = context.isStrict() && expr.getType() == OperationType.FLOAT
+                && switch (expr.getOperation()) {
+                    case ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO -> true;
+                    default -> false;
+                };
+        var outerPrecedence = precedence;
+
+        if (roundFloat) {
+            writer.appendGlobal("Math").append(".fround(");
+            precedence = Precedence.min();
+        }
+
         if (guarded) {
             visitBinary(BinaryOperation.OR, "|", () -> visitBinary(expr, op, false),
                     () -> writer.append("0"));
@@ -525,6 +537,11 @@ public class StatementRenderer implements ExprVisitor, StatementVisitor {
             visitBinary(expr.getOperation(), op, () -> expr.getFirstOperand().acceptVisitor(this),
                     () -> expr.getSecondOperand().acceptVisitor(this));
         }
+        if (roundFloat) {
+            writer.append(')');
+            precedence = outerPrecedence;
+        }
+
         if (expr.getLocation() != null) {
             popLocation();
         }
@@ -931,6 +948,15 @@ public class StatementRenderer implements ExprVisitor, StatementVisitor {
         if (expr.getLocation() != null) {
             pushLocation(expr.getLocation());
         }
+        boolean roundFloat = context.isStrict() && expr.getTarget() == OperationType.FLOAT
+                && expr.getSource() != OperationType.FLOAT && expr.getSource() != OperationType.LONG;
+        var outerPrecedence = precedence;
+
+        if (roundFloat) {
+            writer.appendGlobal("Math").append(".fround(");
+            precedence = Precedence.min();
+        }
+
         switch (expr.getSource()) {
             case INT:
                 if (expr.getTarget() == OperationType.LONG) {
@@ -959,7 +985,8 @@ public class StatementRenderer implements ExprVisitor, StatementVisitor {
                         break;
                     case FLOAT:
                     case DOUBLE:
-                        writer.appendFunction("Long_toNumber").append("(");
+                        writer.appendFunction(context.isStrict() && expr.getTarget() == OperationType.FLOAT
+                                ? "Long_toFloat" : "Long_toNumber").append("(");
                         precedence = Precedence.min();
                         expr.getValue().acceptVisitor(this);
                         writer.append(')');
@@ -986,6 +1013,11 @@ public class StatementRenderer implements ExprVisitor, StatementVisitor {
                 }
                 break;
         }
+        if (roundFloat) {
+            writer.append(')');
+            precedence = outerPrecedence;
+        }
+
         if (expr.getLocation() != null) {
             popLocation();
         }

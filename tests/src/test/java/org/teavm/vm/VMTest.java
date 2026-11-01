@@ -563,6 +563,24 @@ public class VMTest {
     }
 
     @Test
+    public void floatOperationsRoundBeforeWidening() {
+        assertEquals(16777216.0, (double) (Float.parseFloat("16777216") + 1.0f), 0.0);
+        assertEquals(7, (int) (Float.parseFloat("0.7") * 10.0f));
+        assertEquals((double) (1.0f / 3.0f), (double) (Float.parseFloat("1") / 3.0f), 0.0);
+        assertEquals(0.0, (double) (Float.parseFloat("1.4e-45") / 2.0f), 0.0);
+    }
+
+    @Test
+    public void floatCastsRoundBeforeWidening() {
+        assertEquals(16777216.0, (double) (float) Integer.parseInt("16777217"), 0.0);
+        assertEquals(16777216.0, (double) (float) Double.parseDouble("16777217"), 0.0);
+        assertEquals(16777216.0, (double) (float) Long.parseLong("16777217"), 0.0);
+        assertEquals(1585446913, Float.floatToIntBits((float) Long.parseLong("4611686293305294849")));
+        assertEquals(1585446913, Float.floatToIntBits((float) Long.parseLong("4611686843061108735")));
+        assertEquals(-562036735, Float.floatToIntBits((float) Long.parseLong("-4611686293305294849")));
+    }
+
+    @Test
     public void precedence() {
         float a = count(3);
         float b = count(7);

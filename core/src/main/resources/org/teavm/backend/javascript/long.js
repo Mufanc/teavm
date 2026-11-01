@@ -23,6 +23,24 @@ let Long_fromInt = val => teavm_globals.BigInt.asIntN(64, teavm_globals.BigInt(v
 let Long_fromNumber = val =>  teavm_globals.BigInt.asIntN(64, teavm_globals.BigInt(
     val >= 0 ? teavm_globals.Math.floor(val) : teavm_globals.Math.ceil(val)));
 let Long_toNumber = val => teavm_globals.Number(val);
+let Long_toFloat = val => {
+    let negative = val < teavm_globals.BigInt(0);
+    if (negative) {
+        val = -val;
+    }
+    let number;
+    if (val > teavm_globals.BigInt(9007199254740991)) {
+        // Round to odd before converting to double, to avoid double rounding to float.
+        let bits = val >> teavm_globals.BigInt(12);
+        if ((val & teavm_globals.BigInt(4095)) !== teavm_globals.BigInt(0)) {
+            bits |= teavm_globals.BigInt(1);
+        }
+        number = teavm_globals.Number(bits) * 4096;
+    } else {
+        number = teavm_globals.Number(val);
+    }
+    return teavm_globals.Math.fround(negative ? -number : number);
+};
 let Long_hi = val => teavm_globals.Number(teavm_globals.BigInt.asIntN(64, val >> teavm_globals.BigInt(32))) | 0;
 let Long_lo = val => teavm_globals.Number(teavm_globals.BigInt.asIntN(32, val)) | 0;
 
